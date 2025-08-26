@@ -1,17 +1,34 @@
 import uproot
-import awkward as ak
+import os
 
-def load_root_file(path: str, tree_name: str):
+def load_root_file(filename, treename="Events"):
     """
-    Load a ROOT file into an Awkward Array.
+    Load a ROOT file and return the TTree.
 
-    Parameters:
-    path (str): Path to the ROOT file
-    tree_name (str): Name of the TTree inside the ROOT file
+    Parameters
+    ----------
+    filename : str
+        Path to the ROOT file.
+    treename : str
+        Name of the tree inside the ROOT file.
 
-    Returns:
-    awkward.Array
+    Returns
+    -------
+    tree : uproot.behaviors.TTree.TTree
+        The TTree object that allows access to branches.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the ROOT file does not exist.
+    ValueError
+        If the requested tree is not found in the file.
     """
-    with uproot.open(path) as file:
-        tree = file[tree_name]
-        return tree.arrays(library="ak")
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"ROOT file not found: {filename}")
+
+    file = uproot.open(filename)
+    if treename not in file:
+        raise ValueError(f"Tree '{treename}' not found. Available: {list(file.keys())}")
+
+    return file[treename]
